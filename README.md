@@ -17,7 +17,7 @@ COMMANDS:</br>
 	check		(Checks files against their stored md5 hashes)
 
 EXAMPLE COMMANDS:</br>
-	hashit generate -rq				(Generates .md5 files for every file in the current directory using the -r and -q options)</br>
+	hashit -rq generate				(Generates .md5 files for every file in the current directory using the -r and -q options)</br>
 	hashit check /home/Samantha		(Checks files in Samantha's home directory against their corresponding .md5 files, but does not recurse into subdirectories)
 
 # Contributing
