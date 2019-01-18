@@ -48,6 +48,8 @@ private:
     bool isMd5File(const bfs::directory_entry &de) const;
     void printCheckStatusReport() const;
     void printGenerateStatusReport() const;
+    void showProgress(const bfs::directory_entry &de, const int &blocksProcessed, const size_t &fileSize,
+            const size_t &bufferSize) const;
 
     // check operation variables
     int filesWithNoHashes = 0;

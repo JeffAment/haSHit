@@ -65,6 +65,6 @@ void main::printUsage(){
     std::cout << "\tgenerate\tGenerates a .md5 file for each file in the directory/directories\n";
     std::cout << "\tcheck\t\tChecks files against their stored md5 hashes\n";
     std::cout << "\nEXAMPLE COMMANDS:\n";
-    std::cout << "\thashit generate -rq\t\t\t\t(Generates .md5 files for every file in the current directory using the -r and -q options)\n";
+    std::cout << "\thashit -rq generate\t\t\t\t(Generates .md5 files for every file in the current directory using the -r and -q options)\n";
     std::cout << "\thashit check /home/Samantha\t\t(Checks files in Samantha's home directory against their corresponding .md5 files, but does not recurse into subdirectories)\n";
 }
