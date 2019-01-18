@@ -5,7 +5,6 @@
 #include "CommandBuilderAndExecutor.h"
 
 //todo: add option to delete orphaned .md5 files with no matching files
-//todo: add delete command to delete all .md5 files
 //todo: make more functions const and try to update variables in less places using boolean return vals from const functions
 //todo: add "checkgen" command that checks files against any pre-existing .md5 files while generating
 //todo: record certain error information in a vector for optional logging option to be implemented later
@@ -52,6 +51,9 @@ void CommandBuilderAndExecutor::execute() {
     } else if (command == CHECK_COMMAND) {
         checkCommand();
         printCheckStatusReport();
+    } else if (command == DELETE_COMMAND) {
+        deleteCommand();
+        printDeleteStatusReport();
     }
 }
 
@@ -78,18 +80,34 @@ void CommandBuilderAndExecutor::checkCommand() {
                 std::string md5Hash;
                 getline(infile, md5Hash);
                 if (md5Hash == generateMD5(*dir)) {
-                    if (!quiet) std::cout << "OK - " << filePath << std::endl;
+                    printString("OK - " + filePath + "\n");
                     ++filesThatAreOK;
                 } else {
-                    if (!quiet) std::cout << "ERROR, hash doesn't match - " << filePath << std::endl;
+                    printString("ERROR, hash doesn't match - " + filePath + "\n");
                     ++filesWithMismatchedHashes;
                 }
             } else {
-                if (!quiet) std::cout << "No .md5 file for " << filePath << std::endl;
+                printString("No .md5 file for " + filePath + "\n");
                 ++filesWithNoHashes;
             }
             infile.close();
         }
+    }
+}
+
+void CommandBuilderAndExecutor::deleteCommand() {
+    std::vector<bfs::path> md5FilesToDelete;
+    for (bfs::recursive_directory_iterator end, dir(path); dir != end; ++dir) {
+        dir.disable_recursion_pending(!recursion);
+        if (!bfs::is_directory(*dir) && isMd5File(*dir)) {
+            md5FilesToDelete.push_back((*dir).path());
+        }
+    }
+    for (auto a : md5FilesToDelete) {
+        if (bfs::remove(a))
+            ++md5FilesDeleted;
+        else
+            ++md5FilesNotDeleted;
     }
 }
 
@@ -139,10 +157,10 @@ void CommandBuilderAndExecutor::createMD5File(const bfs::directory_entry &de, co
             md5file << hashAsString;
             md5file.close();
             ++md5FilesCreated;
-            if (!quiet) std::cout << "OK - hash file successfully created for " << fileName << std::endl;
+            printString("OK - hash file successfully created for " + fileName + "\n");
         } else {
             ++md5FilesThatCouldntBeCreated;
-            if (!quiet) std::cout << "ERROR - hash file could not be created for " << fileName << std::endl;
+            printString("ERROR - hash file could not be created for " + fileName + "\n");
         }
     }
 }
@@ -182,6 +200,14 @@ void CommandBuilderAndExecutor::printGenerateStatusReport() const {
     std::cout << std::endl << "###################################################" << std::endl;
 }
 
+void CommandBuilderAndExecutor::printDeleteStatusReport() const {
+    std::cout << std::endl << "###################################################" << std::endl;
+    std::cout << md5FilesDeleted << " .md5 files successfully deleted" << std::endl;
+    std::cout << md5FilesNotDeleted
+              << " .md5 files couldn't be deleted (possible access error; check permissions)";
+    std::cout << std::endl << "###################################################" << std::endl;
+}
+
 void CommandBuilderAndExecutor::showProgress(const bfs::directory_entry &de, const int &blocksProcessed,
                                              const size_t &fileSize, const size_t &bufferSize) const {
     if (!quiet && blocksProcessed % 512 == 0) {
@@ -191,4 +217,8 @@ void CommandBuilderAndExecutor::showProgress(const bfs::directory_entry &de, con
     if (!quiet && fileSize / bufferSize <= blocksProcessed) {
         std::cout << "\r" << std::flush;
     }
+}
+
+void CommandBuilderAndExecutor::printString(const std::string &string, const bool &overrideQuiet) const {
+    if (!quiet || overrideQuiet) std::cout << string;
 }

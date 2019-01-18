@@ -5,9 +5,9 @@
 #include "main.h"
 #include "CommandBuilderAndExecutor.h"
 
-int main(int argc, char* argv[]){
+int main(int argc, char *argv[]) {
 
-    if (argc < 2){ // no args passed; show usage notes and exit
+    if (argc < 2) { // no args passed; show usage notes and exit
         main::printUsage();
         return 1;
     }
@@ -15,10 +15,10 @@ int main(int argc, char* argv[]){
     CommandBuilderAndExecutor cb;
 
     static const struct option opts[] = {
-            {"recursive",   no_argument,    0, 'r'},
-            {"quiet",       no_argument,    0, 'q'},
-            {"overwrite",   no_argument,    0, 'o'},
-            {0,             0,              0,  0 } // sentinel value
+            {"recursive", no_argument, 0, 'r'},
+            {"quiet",     no_argument, 0, 'q'},
+            {"overwrite", no_argument, 0, 'o'},
+            {0, 0,                     0, 0} // sentinel value
     };
 
     int optidx;
@@ -41,20 +41,20 @@ int main(int argc, char* argv[]){
         }
     }
 
-    if(optind == argc - 1){ // one arg; if it's a command, execute with current directory as path
-        if(cb.setCommand(argv[optind]))
+    if (optind == argc - 1) { // one arg; if it's a command, execute with current directory as path
+        if (cb.setCommand(argv[optind]))
             cb.execute();
-    }else if(optind == argc - 2){ // two args; if it is a valid command followed by a valid path, execute it
-        if(cb.setCommand(argv[optind]) && cb.setPath(argv[optind+1]))
+    } else if (optind == argc - 2) { // two args; if it is a valid command followed by a valid path, execute it
+        if (cb.setCommand(argv[optind]) && cb.setPath(argv[optind + 1]))
             cb.execute();
-    }else{ // invalid usage - too many args; show usage notes and exit
+    } else { // invalid usage - too many args; show usage notes and exit
         main::printUsage();
         return 1;
     }
     return 0;
 }
 
-void main::printUsage(){
+void main::printUsage() {
     std::cout << "\nUSAGE:\n";
     std::cout << "\thashit [options][command] /path/to/files (if no path is specified the current path is used)\n\n";
     std::cout << "OPTIONS:\n";
@@ -64,7 +64,12 @@ void main::printUsage(){
     std::cout << "\nCOMMANDS:\n";
     std::cout << "\tgenerate\tGenerates a .md5 file for each file in the directory/directories\n";
     std::cout << "\tcheck\t\tChecks files against their stored md5 hashes\n";
+    std::cout << "\tdelete\t\tDeletes all .md5 files in the chosen directory/directories\n";
     std::cout << "\nEXAMPLE COMMANDS:\n";
-    std::cout << "\thashit -rq generate\t\t\t\t(Generates .md5 files for every file in the current directory using the -r and -q options)\n";
-    std::cout << "\thashit check /home/Samantha\t\t(Checks files in Samantha's home directory against their corresponding .md5 files, but does not recurse into subdirectories)\n";
+    std::cout << "\thashit -rq generate\t\t\t\t(Generates .md5 files for every file in the current directory using the "
+                 "-r and -q options)\n";
+    std::cout << "\thashit check /home/Samantha\t\t(Checks files in Samantha's home directory against their "
+                 "corresponding .md5 files, but does not recurse into subdirectories)\n";
+    std::cout << "\thashit -r delete /home/pictures\t\t(Deletes all files ending with \".md5\" in the pictures "
+                 "directory and all of its subdirectories)\n";
 }

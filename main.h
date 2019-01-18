@@ -9,7 +9,7 @@
 #include <getopt.h>
 #include <stdio.h>
 
-class main{
+class main {
 public:
     static void printUsage();
 };
