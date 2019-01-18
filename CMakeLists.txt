@@ -14,5 +14,5 @@ endif()
 message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost_LIBRARIES: ${Boost_LIBRARIES}")
 message(STATUS "Boost_VERSION: ${Boost_VERSION}")
-target_link_libraries(haSHit Boost::system Boost::filesystem)
+target_link_libraries(haSHit Boost::filesystem)
 # End Boost
