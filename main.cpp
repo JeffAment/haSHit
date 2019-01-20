@@ -62,14 +62,15 @@ void main::printUsage() {
     std::cout << "\t-q, --quiet\t\t\tDecreases verbosity\n";
     std::cout << "\t-o, --overwrite\t\tOverwrites existing .md5 files when using generate command\n";
     std::cout << "\nCOMMANDS:\n";
-    std::cout << "\tgenerate\tGenerates a .md5 file for each file in the directory/directories\n";
+    std::cout << "\tgenerate\tGenerates a checksum file for each file in the directory/directories\n";
     std::cout << "\tcheck\t\tChecks files against their stored md5 hashes\n";
-    std::cout << "\tdelete\t\tDeletes all .md5 files in the chosen directory/directories\n";
+    std::cout << "\tdelete\t\tDeletes all checksum files in the chosen directory/directories\n";
+    std::cout << "\tdeleteorphans\t\tDeletes all orphaned checksum files in the chosen directory/directories\n";
     std::cout << "\nEXAMPLE COMMANDS:\n";
-    std::cout << "\thashit -rq generate\t\t\t\t(Generates .md5 files for every file in the current directory using the "
-                 "-r and -q options)\n";
+    std::cout << "\thashit -rq generate\t\t\t\t(Generates checksum files for every file in the current directory using "
+                 "the -r and -q options)\n";
     std::cout << "\thashit check /home/Samantha\t\t(Checks files in Samantha's home directory against their "
-                 "corresponding .md5 files, but does not recurse into subdirectories)\n";
-    std::cout << "\thashit -r delete /home/pictures\t\t(Deletes all files ending with \".md5\" in the pictures "
-                 "directory and all of its subdirectories)\n";
+                 "corresponding checksum files, but does not recurse into subdirectories)\n";
+    std::cout << "\thashit -r delete /home/pictures\t\t(Deletes all checksum files in the pictures directory and all of "
+                 "its subdirectories)\n";
 }

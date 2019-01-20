@@ -46,14 +46,19 @@ void CommandBuilderAndExecutor::setGenerateOverwriteTrue() {
 
 void CommandBuilderAndExecutor::execute() {
     if (command == GENERATE_COMMAND) {
+        countOrphanedChecksums();
         generateCommand();
         printGenerateStatusReport();
     } else if (command == CHECK_COMMAND) {
+        countOrphanedChecksums();
         checkCommand();
         printCheckStatusReport();
     } else if (command == DELETE_COMMAND) {
         deleteCommand();
         printDeleteStatusReport();
+    } else if (command == DELETE_ORPHANS_COMMAND) {
+        deleteOrphansCommand();
+        printDeleteOrphansStatusReport();
     }
 }
 
@@ -74,7 +79,7 @@ void CommandBuilderAndExecutor::checkCommand() {
         dir.disable_recursion_pending(!recursion);
         if (!bfs::is_directory(*dir) && !shouldIgnoreFile(*dir)) {
             std::string filePath = (*dir).path().string();
-            std::string fileNameWithPath = filePath + ".md5";
+            std::string fileNameWithPath = filePath + CHECKSUM_EXTENSION;
             std::ifstream infile(fileNameWithPath);
             if (infile.good()) {
                 std::string md5Hash;
@@ -87,7 +92,7 @@ void CommandBuilderAndExecutor::checkCommand() {
                     ++filesWithMismatchedHashes;
                 }
             } else {
-                printString("No .md5 file for " + filePath + "\n");
+                printString("No checksum file for " + filePath + "\n");
                 ++filesWithNoHashes;
             }
             infile.close();
@@ -111,6 +116,22 @@ void CommandBuilderAndExecutor::deleteCommand() {
     }
 }
 
+void CommandBuilderAndExecutor::deleteOrphansCommand() {
+    std::vector<bfs::path> orphansToDelete;
+    for (bfs::recursive_directory_iterator end, dir(path); dir != end; ++dir) {
+        dir.disable_recursion_pending(!recursion);
+        if (!bfs::is_directory(*dir) && isMd5File(*dir) && isOrphanedChecksum(*dir)) {
+            orphansToDelete.push_back((*dir).path());
+        }
+    }
+    for (auto a : orphansToDelete) {
+        if (bfs::remove(a))
+            ++md5FilesDeleted;
+        else
+            ++md5FilesNotDeleted;
+    }
+}
+
 std::string CommandBuilderAndExecutor::generateMD5(const bfs::directory_entry &de) {
     std::string filePath = de.path().string();
     auto fileSize = bfs::file_size(de);
@@ -124,7 +145,7 @@ std::string CommandBuilderAndExecutor::generateMD5(const bfs::directory_entry &d
 
     if (inFile.fail() || !inFile.is_open() || inFile.bad()) {
         ++filesThatCouldntBeOpened;
-        if (!quiet) std::cout << "ERROR - File could not be opened!" << std::endl;
+        printString("ERROR - File could not be opened!\n");
         return "Error";
     }
 
@@ -150,7 +171,7 @@ std::string CommandBuilderAndExecutor::generateMD5(const bfs::directory_entry &d
 void CommandBuilderAndExecutor::createMD5File(const bfs::directory_entry &de, const std::string &hashAsString) {
     if (hashAsString.length() / 2 == MD5_DIGEST_LENGTH) {
         std::string fileName = de.path().string();
-        std::string fileNameWithPath = fileName + ".md5";
+        std::string fileNameWithPath = fileName + CHECKSUM_EXTENSION;
         std::ofstream md5file(fileNameWithPath);
 
         if (md5file.good()) {
@@ -167,7 +188,7 @@ void CommandBuilderAndExecutor::createMD5File(const bfs::directory_entry &de, co
 
 bool CommandBuilderAndExecutor::md5FileExists(const bfs::directory_entry &de) {
     std::string filePath = de.path().string();
-    std::string filePathWithMd5Appendage = filePath + ".md5";
+    std::string filePathWithMd5Appendage = filePath + CHECKSUM_EXTENSION;
     if (bfs::is_regular_file(filePathWithMd5Appendage)) {
         ++md5FilesThatAlreadyExist;
         return true;
@@ -180,31 +201,56 @@ bool CommandBuilderAndExecutor::shouldIgnoreFile(const bfs::directory_entry &de)
 }
 
 bool CommandBuilderAndExecutor::isMd5File(const bfs::directory_entry &de) const {
-    return de.path().extension() == ".md5";
+    return de.path().extension() == CHECKSUM_EXTENSION;
+}
+
+bool CommandBuilderAndExecutor::isOrphanedChecksum(const bfs::directory_entry &de) const {
+    std::string checksumFile = de.path().string();
+    std::string nameOfCorrespondingFile = checksumFile.substr(0, checksumFile.size() - CHECKSUM_EXTENSION.size());
+    return !bfs::is_regular_file(nameOfCorrespondingFile);
+}
+
+void CommandBuilderAndExecutor::countOrphanedChecksums() {
+    for (bfs::recursive_directory_iterator end, dir(path); dir != end; ++dir) {
+        dir.disable_recursion_pending(!recursion);
+        if (!bfs::is_directory(*dir) && isMd5File(*dir) && isOrphanedChecksum(*dir)) {
+            ++orphanedChecksums;
+        }
+    }
 }
 
 void CommandBuilderAndExecutor::printCheckStatusReport() const {
     std::cout << std::endl << "###################################################" << std::endl;
     std::cout << filesThatAreOK << " files are OK" << std::endl;
-    std::cout << filesWithNoHashes << " files with no hashes" << std::endl;
-    std::cout << filesWithMismatchedHashes << " files with mismatched hashes";
+    std::cout << filesWithNoHashes << " files with no checksums" << std::endl;
+    std::cout << filesWithMismatchedHashes << " files with mismatched checksums" << std::endl;
+    std::cout << orphanedChecksums << " orphaned checksum files";
     std::cout << std::endl << "###################################################" << std::endl;
 }
 
 void CommandBuilderAndExecutor::printGenerateStatusReport() const {
     std::cout << std::endl << "###################################################" << std::endl;
-    std::cout << md5FilesCreated << " .md5 files successfully generated" << std::endl;
+    std::cout << md5FilesCreated << " checksum files successfully generated" << std::endl;
     std::cout << md5FilesThatCouldntBeCreated
-              << " .md5 files couldn't be generated (possible access error; check permissions)" << std::endl;
-    std::cout << md5FilesThatAlreadyExist << " .md5 files already exist; nothing to generate";
+              << " checksum files couldn't be generated (possible access error; check permissions)" << std::endl;
+    std::cout << md5FilesThatAlreadyExist << " checksum files already exist; nothing to generate" << std::endl;
+    std::cout << orphanedChecksums << " orphaned checksum files";
     std::cout << std::endl << "###################################################" << std::endl;
 }
 
 void CommandBuilderAndExecutor::printDeleteStatusReport() const {
     std::cout << std::endl << "###################################################" << std::endl;
-    std::cout << md5FilesDeleted << " .md5 files successfully deleted" << std::endl;
+    std::cout << md5FilesDeleted << " checksum files successfully deleted" << std::endl;
     std::cout << md5FilesNotDeleted
-              << " .md5 files couldn't be deleted (possible access error; check permissions)";
+              << " checksum files couldn't be deleted (possible access error; check permissions)";
+    std::cout << std::endl << "###################################################" << std::endl;
+}
+
+void CommandBuilderAndExecutor::printDeleteOrphansStatusReport() const {
+    std::cout << std::endl << "###################################################" << std::endl;
+    std::cout << md5FilesDeleted << " orphaned checksum files successfully deleted" << std::endl;
+    std::cout << md5FilesNotDeleted
+              << " orphaned checksum files couldn't be deleted (possible access error; check permissions)";
     std::cout << std::endl << "###################################################" << std::endl;
 }
 
