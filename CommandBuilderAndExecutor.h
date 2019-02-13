@@ -103,7 +103,7 @@ private:
     const std::string DELETE_ORPHANS_COMMAND = "deleteorphans";
     const std::vector<std::string> VALID_COMMANDS_VECTOR = {GENERATE_COMMAND, CHECK_COMMAND, DELETE_COMMAND,
                                                             DELETE_ORPHANS_COMMAND};
-    const std::string CHECKSUM_EXTENSION = ".md5";
+    const std::string CHECKSUM_EXTENSION = ".hashit";
 };
 
 #endif //HASHIT_COMMANDBUILDERANDEXECUTOR_H
