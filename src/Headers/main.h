@@ -8,10 +8,12 @@
 #include <iostream>
 #include <getopt.h>
 #include <stdio.h>
+#include "PrintingAndStatus.h"
+#include "CommandBuilderAndExecutor.h"
+#include "CommandState.h"
 
 class main {
-public:
-    static void printUsage();
+
 };
 
 #endif //HASHIT_MAIN_H

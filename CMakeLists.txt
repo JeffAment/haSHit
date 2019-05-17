@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 project(haSHit)
 
 set(CMAKE_CXX_STANDARD 14)
-set(SOURCE_FILES main.cpp CommandBuilderAndExecutor.cpp)
+set(SOURCE_FILES src/main.cpp src/CommandBuilderAndExecutor.cpp src/Commands.cpp src/Headers/Commands.h src/PrintingAndStatus.cpp src/Headers/PrintingAndStatus.h src/CommandState.cpp src/Headers/CommandState.h)
 
 set(Boost_USE_STATIC_LIBS NO) # Set this to YES or NO depending on needs
 set(Boost_USE_MULTITHREADED ON)
